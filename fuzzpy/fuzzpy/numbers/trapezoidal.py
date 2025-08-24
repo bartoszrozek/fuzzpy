@@ -3,13 +3,29 @@ import numpy as np
 
 class TrapezoidalFuzzyNumber(FuzzyNumber):
     """
-    Represents a standard trapezoidal fuzzy number with a piecewise linear membership function.
-    The membership function is defined by four real parameters (a1, a2, a3, a4):
-        - a1: left endpoint of support (membership > 0)
-        - a2: left endpoint of core (membership = 1)
-        - a3: right endpoint of core (membership = 1)
-        - a4: right endpoint of support (membership > 0)
-    The left and right slopes are linear, and the core is flat (membership = 1).
+    Trapezoidal fuzzy number.
+
+    Represents a trapezoidal fuzzy number with a piecewise-linear membership
+    function defined by four real parameters.
+
+    Parameters
+    ----------
+    a1, a2, a3, a4 : float
+        Parameters defining the trapezoid:
+        a1 : left endpoint of support (membership > 0)
+        a2 : left endpoint of core (membership = 1)
+        a3 : right endpoint of core (membership = 1)
+        a4 : right endpoint of support (membership > 0)
+
+    Notes
+    -----
+    The membership function μ(x) is defined as:
+      - μ(x) = 0 for x <= a1 or x >= a4
+      - μ(x) increases linearly from 0 to 1 on [a1, a2]
+      - μ(x) = 1 on [a2, a3]
+      - μ(x) decreases linearly from 1 to 0 on [a3, a4]
+
+    The left and right slopes are linear and the core [a2, a3] is flat (membership = 1).
     """
     def __init__(self, a1: float, a2: float, a3: float, a4: float):
         # Define left and right as linear functions

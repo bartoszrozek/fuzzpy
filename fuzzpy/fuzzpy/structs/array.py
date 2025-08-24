@@ -5,10 +5,44 @@ import pandas as pd
 import numpy as np
 from functools import reduce
 
-class FuzzyNumberArray:
+class FuzzyNumberArray():
     """
-    Stores an array of fuzzy numbers (of the same type).
-    Provides basic sequence and vectorized operations.
+    Container for a fixed-size sequence of fuzzy numbers of the same (or compatible) type.
+
+    This class wraps a list of FuzzyNumber instances and provides:
+    - Sequence protocols: len, iter, indexing, slicing and fancy indexing (list of ints).
+    - Element-wise arithmetic (+, *) with scalars, fuzzy numbers or another FuzzyNumberArray.
+    - Vectorized access to attributes of contained fuzzy numbers via attribute lookup
+      (e.g. arr.a1 returns a numpy array of a1 values).
+    - Convenience plotting of membership functions using plotnine (plot method).
+    - Random factory constructors for triangular and trapezoidal fuzzy numbers.
+
+    Important behaviors and invariants
+    - The constructor requires a non-empty sequence. If the provided elements are not
+      all the same concrete type, the most specific common base class (by MRO) is used
+      as the array's declared element type.
+    - Setting items enforces that assigned elements are instances of the array's element
+      type.
+    - Arithmetic operations return a new FuzzyNumberArray; operations with another
+      FuzzyNumberArray require equal lengths.
+
+    Attributes
+    ----------
+    _data : list[FuzzyNumber]
+        Underlying storage of fuzzy number instances.
+    _type : type
+        Declared element type (most specific common base for the provided elements).
+
+    Examples
+    --------
+    >>> from fuzzpy.numbers import TriangularFuzzyNumber
+    >>> a = FuzzyNumberArray([TriangularFuzzyNumber(0, 1, 2), TriangularFuzzyNumber(1, 2, 3)])
+    >>> len(a)
+    2
+    >>> a[0] + 1.0
+    <TriangularFuzzyNumber ...>
+    >>> a.a2  # returns numpy array of the a2 (center) values
+    array([1., 2.])
     """
     def __init__(self, data: Sequence[FuzzyNumber]):
         if not data:

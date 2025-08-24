@@ -14,6 +14,7 @@ class FuzzyNumber(ABC):
     A fuzzy number is defined by four real parameters (a1, a2, a3, a4) that specify its support and core,
     and by optional vectorized functions that describe the shape of its membership function on the left,
     right, lower, and upper sides.
+
     Parameters
     ----------
     a1 : float
