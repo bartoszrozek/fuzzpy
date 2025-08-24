@@ -1,0 +1,32 @@
+API Reference
+=============
+
+.. autosummary::
+   :toctree: .
+
+Fuzzy Numbers
+--------------
+
+.. automodule:: fuzzpy.numbers.fuzzy_number
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+.. automodule:: fuzzpy.numbers.triangular
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+.. automodule:: fuzzpy.numbers.trapezoidal
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
+Fuzzy structs
+--------------
+
+.. automodule:: fuzzpy.structs.array
+    :members:
+    :undoc-members:
+    :show-inheritance:
