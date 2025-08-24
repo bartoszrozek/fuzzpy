@@ -1,0 +1,23 @@
+[project]
+name = "fuzzpy"
+version = "0.1.0"
+description = "A Python package for fuzzy number operations"
+authors = [
+  { name="Bartosz Rozek", email="you@example.com" }
+]
+license = {text = "MIT"}
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "ipykernel>=6.29.5",
+    "numba==0.61.2",
+    "numpy==2.2.*",
+    "plotnine>=0.12.4",
+]
+
+[project.optional-dependencies]
+dev = ["pytest", "pytest-benchmark", "ruff", "black", "ty"]
+
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
