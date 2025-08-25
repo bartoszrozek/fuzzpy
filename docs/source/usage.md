@@ -6,13 +6,13 @@ This page shows short, practical examples to get you started with creating and w
 
 ```python
 import numpy as np
-from fuzzpy.fuzzpy.numbers import (
+from fuzzpy.numbers import (
 	TriangularFuzzyNumber,
 	TrapezoidalFuzzyNumber,
 	FuzzyNumber,
 )
-from fuzzpy.fuzzpy.structs import FuzzyNumberArray
-from fuzzpy.fuzzpy.config import set_fuzzy_addition_method, get_fuzzy_addition_method
+from fuzzpy.structs import FuzzyNumberArray
+from fuzzpy.config import set_fuzzy_addition_method, get_fuzzy_addition_method
 ```
 
 ## Create basic fuzzy numbers

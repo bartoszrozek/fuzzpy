@@ -55,8 +55,8 @@ Quick examples
 
 ```python
 import numpy as np
-from fuzzpy.fuzzpy.numbers import TriangularFuzzyNumber, TrapezoidalFuzzyNumber
-from fuzzpy.fuzzpy.structs import FuzzyNumberArray
+from fuzzpy.numbers import TriangularFuzzyNumber, TrapezoidalFuzzyNumber
+from fuzzpy.structs import FuzzyNumberArray
 
 # create numbers
 a = TriangularFuzzyNumber(0, 1, 2)

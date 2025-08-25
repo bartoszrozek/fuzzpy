@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 from plotnine import aes, geom_line, ggplot, labs, theme_minimal
 
-from fuzzpy.fuzzpy.config import get_fuzzy_addition_method
+from fuzzpy.config import get_fuzzy_addition_method
 
 NumericFunction = Callable[[np.ndarray[Any, Any]], np.ndarray[Any, Any]]
 
