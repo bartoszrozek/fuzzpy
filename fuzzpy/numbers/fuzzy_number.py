@@ -1,6 +1,6 @@
 import warnings
 from abc import ABC
-from typing import Any, Callable, Optional, Tuple
+from typing import Any, Callable, Optional, Tuple, TypeVar, overload, cast
 
 import numpy as np
 import pandas as pd
@@ -9,6 +9,9 @@ from plotnine import aes, geom_line, ggplot, labs, theme_minimal
 from fuzzpy.config import get_fuzzy_addition_method
 
 NumericFunction = Callable[[np.ndarray[Any, Any]], np.ndarray[Any, Any]]
+
+# Generic type for subclasses returning self-type
+T = TypeVar("T", bound="FuzzyNumber")
 
 
 class FuzzyNumber(ABC):
@@ -79,7 +82,8 @@ class FuzzyNumber(ABC):
         self.a2 = float(a2)
         self.a3 = float(a3)
         self.a4 = float(a4)
-        default_function: NumericFunction = lambda x: np.full_like(x, np.nan, dtype=float)
+        def default_function(x: np.ndarray) -> np.ndarray:
+            return np.full_like(x, np.nan, dtype=float)
         self.lower: NumericFunction = (
             lower
             if lower is not None
@@ -119,10 +123,26 @@ class FuzzyNumber(ABC):
     def support(self) -> Tuple[float, float]:
         return (self.a1, self.a4)
 
-    def __add__(self, other: "FuzzyNumber | int | float") -> "FuzzyNumber":
+    @overload
+    def __add__(self: T, other: T) -> T:
+        ...
+
+    @overload
+    def __add__(self: T, other: int | float) -> T:
+        ...
+
+    def __add__(self: T, other: T | int | float) -> T:
         return self._add_fuzzy(other)
 
-    def __mul__(self, other: "FuzzyNumber | int | float") -> "FuzzyNumber":
+    @overload
+    def __mul__(self: T, other: T) -> T:
+        ...
+
+    @overload
+    def __mul__(self: T, other: int | float) -> T:
+        ...
+
+    def __mul__(self: T, other: T | int | float) -> T:
         return self._mul_fuzzy(other)
 
 
@@ -175,7 +195,15 @@ class FuzzyNumber(ABC):
             f"lower={self.lower}, upper={self.upper}, left_fun={self.left_fun}, right_fun={self.right_fun})"
         )
 
-    def _add_fuzzy(self, other: "FuzzyNumber | int | float") -> "FuzzyNumber":
+    @overload
+    def _add_fuzzy(self: T, other: T) -> T:  # pragma: no cover - typing only
+        ...
+
+    @overload
+    def _add_fuzzy(self: T, other: int | float) -> T:  # pragma: no cover - typing only
+        ...
+
+    def _add_fuzzy(self: T, other: T | int | float) -> T:
         if isinstance(other, FuzzyNumber):
             method = get_fuzzy_addition_method()
             if method == "default":
@@ -190,7 +218,7 @@ class FuzzyNumber(ABC):
                 raise ValueError(f"Unknown fuzzy addition method: {method}")
         elif isinstance(other, (int, float)):
             # Shift all parameters by the numeric value
-            return self.__class__(
+            return cast(T, self.__class__(
                 self.a1 + other,
                 self.a2 + other,
                 self.a3 + other,
@@ -199,16 +227,24 @@ class FuzzyNumber(ABC):
                 upper=self.upper,
                 left_fun=self.left_fun,
                 right_fun=self.right_fun,
-            )
+            ))
         else:
             return NotImplemented
 
-    def _mul_fuzzy(self, other: "FuzzyNumber | int | float") -> "FuzzyNumber":
+    @overload
+    def _mul_fuzzy(self: T, other: T) -> T:  # pragma: no cover - typing only
+        ...
+
+    @overload
+    def _mul_fuzzy(self: T, other: int | float) -> T:  # pragma: no cover - typing only
+        ...
+
+    def _mul_fuzzy(self: T, other: T | int | float) -> T:
         if isinstance(other, FuzzyNumber):
             raise NotImplementedError("Multiplication with another FuzzyNumber must be implemented in a subclass.")
         elif isinstance(other, (int, float)):
             # Scale all parameters by the numeric value
-            return self.__class__(
+            return cast(T, self.__class__(
                 self.a1 * other,
                 self.a2 * other,
                 self.a3 * other,
@@ -217,15 +253,15 @@ class FuzzyNumber(ABC):
                 upper=self.upper,
                 left_fun=self.left_fun,
                 right_fun=self.right_fun,
-            )
+            ))
         else:
             return NotImplemented
         
-    def __radd__(self, other:  "FuzzyNumber") -> "FuzzyNumber":
+    def __radd__(self: T, other: T | int | float) -> T:
         warnings.warn("Upper casting to FuzzyNumber may lead to unexpected results.")
         return self.__add__(other)
 
-    def __rmul__(self, other: "FuzzyNumber") -> "FuzzyNumber":
+    def __rmul__(self: T, other: T | int | float) -> T:
         return self.__mul__(other)
 
     def __eq__(self, other: Any) -> bool:
@@ -240,7 +276,7 @@ class FuzzyNumber(ABC):
         # Hash only the numeric parameters for now
         return hash((self.a1, self.a2, self.a3, self.a4))
     
-    def plot(self, n_points: int = 200, title: str = "Fuzzy Number Membership Function", **kwargs) -> ggplot:
+    def plot(self, n_points: int = 200, title: str = "Fuzzy Number Membership Function", **kwargs: Any) -> ggplot:
         """
         Plot the membership function of the fuzzy number using plotnine.
 
