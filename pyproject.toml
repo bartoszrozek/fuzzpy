@@ -10,7 +10,6 @@ readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
     "ipykernel>=6.29.5",
-    "numba==0.61.2",
     "numpy==2.2.*",
     "plotnine>=0.12.4",
 ]
@@ -25,6 +24,7 @@ build-backend = "setuptools.build_meta"
 [dependency-groups]
 dev = [
     "myst-parser>=4.0.1",
+    "pytest>=8.4.1",
     "sphinx>=8.2.3",
     "sphinx-autodoc-typehints>=3.2.0",
     "sphinx-rtd-theme>=3.0.2",
