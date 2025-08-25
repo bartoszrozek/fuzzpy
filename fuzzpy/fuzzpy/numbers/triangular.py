@@ -69,13 +69,13 @@ class TriangularFuzzyNumber(TrapezoidalFuzzyNumber):
         return self.a4
 
     def _add_fuzzy(self, other: "FuzzyNumber | int | float") -> "TriangularFuzzyNumber":
-        # if isinstance(other, TriangularFuzzyNumber):
-        #     return TriangularFuzzyNumber(
-        #         self.a1 + other.a1,
-        #         self.a2 + other.a2,
-        #         self.a4 + other.a4,
-        #     )
-        if isinstance(other, (int, float)):
+        if isinstance(other, TriangularFuzzyNumber):
+            return TriangularFuzzyNumber(
+                self.a1 + other.a1,
+                self.a2 + other.a2,
+                self.a4 + other.a4,
+            )
+        elif isinstance(other, (int, float)):
             return TriangularFuzzyNumber(
                 self.a1 + other,
                 self.a2 + other,
@@ -85,13 +85,13 @@ class TriangularFuzzyNumber(TrapezoidalFuzzyNumber):
             return NotImplemented
 
     def _mul_fuzzy(self, other: "FuzzyNumber | int | float") -> "TriangularFuzzyNumber":
-        if isinstance(other, TriangularFuzzyNumber):
-            return TriangularFuzzyNumber(
-                self.a1 * other.a1,
-                self.a2 * other.a2,
-                self.a4 * other.a4,
-            )
-        elif isinstance(other, (int, float)):
+        # if isinstance(other, TriangularFuzzyNumber):
+        #     return TriangularFuzzyNumber(
+        #         self.a1 * other.a1,
+        #         self.a2 * other.a2,
+        #         self.a4 * other.a4,
+        #     )
+        if isinstance(other, (int, float)):
             return TriangularFuzzyNumber(
                 self.a1 * other,
                 self.a2 * other,

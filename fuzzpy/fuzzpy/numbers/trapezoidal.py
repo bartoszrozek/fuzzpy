@@ -38,15 +38,15 @@ class TrapezoidalFuzzyNumber(FuzzyNumber):
         super().__init__(a1, a2, a3, a4, left_fun=left_fun, right_fun=right_fun)
 
     def _add_fuzzy(self, other: "FuzzyNumber | int | float") -> "TrapezoidalFuzzyNumber":
-        # if isinstance(other, TrapezoidalFuzzyNumber):
-        #     # Add corresponding parameters
-        #     return TrapezoidalFuzzyNumber(
-        #         self.a1 + other.a1,
-        #         self.a2 + other.a2,
-        #         self.a3 + other.a3,
-        #         self.a4 + other.a4,
-        #     )
-        if isinstance(other, (int, float)):
+        if isinstance(other, TrapezoidalFuzzyNumber):
+            # Add corresponding parameters
+            return TrapezoidalFuzzyNumber(
+                self.a1 + other.a1,
+                self.a2 + other.a2,
+                self.a3 + other.a3,
+                self.a4 + other.a4,
+            )
+        elif isinstance(other, (int, float)):
             # Add other to each parameter
             return TrapezoidalFuzzyNumber(
                 self.a1 + other,
@@ -58,15 +58,7 @@ class TrapezoidalFuzzyNumber(FuzzyNumber):
             return NotImplemented
 
     def _mul_fuzzy(self, other: "FuzzyNumber | int | float") -> "TrapezoidalFuzzyNumber":
-        if isinstance(other, TrapezoidalFuzzyNumber):
-            # Multiply corresponding parameters (not always mathematically correct, but common for positive fuzzy numbers)
-            return TrapezoidalFuzzyNumber(
-                self.a1 * other.a1,
-                self.a2 * other.a2,
-                self.a3 * other.a3,
-                self.a4 * other.a4,
-            )
-        elif isinstance(other, (int, float)):
+        if isinstance(other, (int, float)):
             # Multiply each parameter by other
             return TrapezoidalFuzzyNumber(
                 self.a1 * other,
