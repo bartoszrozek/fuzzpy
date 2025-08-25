@@ -1,9 +1,12 @@
+import warnings
 from abc import ABC
-from typing import Tuple, Callable, Optional, Any
+from typing import Any, Callable, Optional, Tuple
+
 import numpy as np
-from plotnine import ggplot, aes, geom_line, labs, theme_minimal
 import pandas as pd
-from fuzzpy.config import get_fuzzy_addition_method
+from plotnine import aes, geom_line, ggplot, labs, theme_minimal
+
+from fuzzpy.fuzzpy.config import get_fuzzy_addition_method
 
 NumericFunction = Callable[[np.ndarray[Any, Any]], np.ndarray[Any, Any]]
 
@@ -219,6 +222,7 @@ class FuzzyNumber(ABC):
             return NotImplemented
         
     def __radd__(self, other:  "FuzzyNumber") -> "FuzzyNumber":
+        warnings.warn("Upper casting to FuzzyNumber may lead to unexpected results.")
         return self.__add__(other)
 
     def __rmul__(self, other: "FuzzyNumber") -> "FuzzyNumber":
