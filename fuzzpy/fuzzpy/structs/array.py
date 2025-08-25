@@ -1,11 +1,13 @@
-from typing import Sequence, Iterator, Union, Optional, Any
+from typing import TypeVar, Generic, Sequence, Iterator, Union, Optional, Any, cast
 from ..numbers import FuzzyNumber, TriangularFuzzyNumber, TrapezoidalFuzzyNumber
 from plotnine import ggplot, aes, geom_line, labs, theme_minimal
 import pandas as pd
 import numpy as np
 from functools import reduce
 
-class FuzzyNumberArray():
+T = TypeVar("T", bound=FuzzyNumber)
+
+class FuzzyNumberArray(Generic[T]):
     """
     Container for a fixed-size sequence of fuzzy numbers of the same (or compatible) type.
 
@@ -53,9 +55,10 @@ class FuzzyNumberArray():
         else:
             # Find the most specific common superclass among the types
             self._type = reduce(self.common_base, types)
-        self._data = list(data)
+        # store as a list[T] for precise typing; cast is safe if caller used correct element types
+        self._data: list[T] = cast(list[T], list(data))
 
-    def __getitem__(self, idx: int | slice | list[int]) -> "FuzzyNumber | FuzzyNumberArray":
+    def __getitem__(self, idx: int | slice | list[int]) -> "T | FuzzyNumberArray[T]":
         cls = type(self)
         if isinstance(idx, slice):
             return cls(self._data[idx])
@@ -64,7 +67,7 @@ class FuzzyNumberArray():
         else:
             return self._data[idx]
 
-    def __setitem__(self, idx: int, value: FuzzyNumber):
+    def __setitem__(self, idx: int, value: T):
         if not isinstance(value, self._type):
             raise TypeError(f"All elements must be of type {self._type}")
         self._data[idx] = value
@@ -72,7 +75,7 @@ class FuzzyNumberArray():
     def __len__(self) -> int:
         return len(self._data)
 
-    def __iter__(self) -> Iterator[FuzzyNumber]:
+    def __iter__(self) -> Iterator[T]:
         return iter(self._data)
 
     def __repr__(self) -> str:
@@ -90,21 +93,24 @@ class FuzzyNumberArray():
             f"FuzzyNumberArray(type_={type_name}, size={len(self)}, data=[{preview}])"
         )
 
-    def __add__(self, other: Union['FuzzyNumberArray', int, float, FuzzyNumber]) -> 'FuzzyNumberArray':
+    def __add__(self, other: Union['FuzzyNumberArray[T]', int, float, FuzzyNumber]) -> 'FuzzyNumberArray[T]':
         if isinstance(other, FuzzyNumberArray):
             if len(self) != len(other):
                 raise ValueError("Arrays must be of the same length")
-            return FuzzyNumberArray([a + b for a, b in zip(self._data, other._data)])
-        return FuzzyNumberArray([a + other for a in self._data])
+            return FuzzyNumberArray([cast(T, a + b) for a, b in zip(self._data, other._data)])
+        return FuzzyNumberArray([cast(T, a + other) for a in self._data])
 
-    def __mul__(self, other: Union['FuzzyNumberArray', int, float, FuzzyNumber]) -> 'FuzzyNumberArray':
+    def __radd__(self, other: Union[int, float, FuzzyNumber]) -> 'FuzzyNumberArray[T]':
+        return self.__add__(other)
+
+    def __mul__(self, other: Union['FuzzyNumberArray[T]', int, float, FuzzyNumber]) -> 'FuzzyNumberArray[T]':
         if isinstance(other, FuzzyNumberArray):
             if len(self) != len(other):
                 raise ValueError("Arrays must be of the same length")
-            return FuzzyNumberArray([a * b for a, b in zip(self._data, other._data)])
-        return FuzzyNumberArray([a * other for a in self._data])
+            return FuzzyNumberArray([cast(T, a * b) for a, b in zip(self._data, other._data)])
+        return FuzzyNumberArray([cast(T, a * other) for a in self._data])
 
-    def tolist(self) -> list[FuzzyNumber]:
+    def tolist(self) -> list[T]:
         return list(self._data)
 
     def plot(
@@ -192,24 +198,24 @@ class FuzzyNumberArray():
         r1: float,
         r2: float,
         random_state: Optional[int] = None
-    ) -> "FuzzyNumberArray":
+    ) -> "FuzzyNumberArray[TriangularFuzzyNumber]":
         """
         Generate a FuzzyNumberArray of n TriangularFuzzyNumber objects.
         c ~ N(c_mu, c_sigma), l ~ U(l1, l2), r ~ U(r1, r2).
         Ensures a1 < a2 < a4 for each number.
         """
         rng = np.random.default_rng(random_state)
-        c = rng.normal(c_mu, c_sigma, n)
-        l = rng.uniform(l1, l2, n)
-        r = rng.uniform(r1, r2, n)
+        centers = rng.normal(c_mu, c_sigma, n)
+        lefts = rng.uniform(l1, l2, n)
+        rights = rng.uniform(r1, r2, n)
         arr: list[TriangularFuzzyNumber] = []
-        for ci, li, ri in zip(c, l, r):
-            a1 = ci - abs(li)
-            a2 = ci
-            a4 = ci + abs(ri)
+        for center, left, right in zip(centers, lefts, rights):
+            a1 = center - abs(left)
+            a2 = center
+            a4 = center + abs(right)
             if a1 < a2 < a4:
                 arr.append(TriangularFuzzyNumber(a1, a2, a4))
-        return cls(arr)
+        return FuzzyNumberArray(arr)
 
     @classmethod
     def random_trapezoidal(
@@ -224,23 +230,23 @@ class FuzzyNumberArray():
         w1: float,
         w2: float,
         random_state: Optional[int] = None
-    ) -> "FuzzyNumberArray":
+    ) -> "FuzzyNumberArray[TrapezoidalFuzzyNumber]":
         """
         Generate a FuzzyNumberArray of n TrapezoidalFuzzyNumber objects.
         c ~ N(c_mu, c_sigma), l ~ U(l1, l2), r ~ U(r1, r2), w ~ U(w1, w2).
         Ensures a1 < a2 <= a3 < a4 for each number.
         """
         rng = np.random.default_rng(random_state)
-        c = rng.normal(c_mu, c_sigma, n)
-        l = rng.uniform(l1, l2, n)
-        r = rng.uniform(r1, r2, n)
-        w = rng.uniform(w1, w2, n)
+        centers = rng.normal(c_mu, c_sigma, n)
+        lefts = rng.uniform(l1, l2, n)
+        rights = rng.uniform(r1, r2, n)
+        widths = rng.uniform(w1, w2, n)
         arr: list[TrapezoidalFuzzyNumber] = []
-        for ci, li, ri, wi in zip(c, l, r, w):
-            a2 = ci - abs(wi) / 2
-            a3 = ci + abs(wi) / 2
-            a1 = a2 - abs(li)
-            a4 = a3 + abs(ri)
+        for center, left, right, width in zip(centers, lefts, rights, widths):
+            a2 = center - abs(width) / 2
+            a3 = center + abs(width) / 2
+            a1 = a2 - abs(left)
+            a4 = a3 + abs(right)
             if a1 < a2 <= a3 < a4:
                 arr.append(TrapezoidalFuzzyNumber(a1, a2, a3, a4))
-        return cls(arr)
+        return FuzzyNumberArray(arr)
