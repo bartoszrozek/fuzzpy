@@ -1,14 +1,18 @@
 import warnings
 from abc import ABC
-from typing import Any, Callable, Optional, Tuple, TypeVar, overload, cast
+from typing import Any, Callable, Optional, Tuple, TypeVar, cast, overload
 
 import numpy as np
 import pandas as pd
+from numpy.typing import NDArray
 from plotnine import aes, geom_line, ggplot, labs, theme_minimal
+from scipy.integrate import quad
 
 from fuzzpy.config import get_fuzzy_addition_method
 
-NumericFunction = Callable[[np.ndarray[Any, Any]], np.ndarray[Any, Any]]
+# A numeric scalar or numpy array type used for function inputs/outputs
+NumericArray = float | NDArray[np.float64]
+NumericFunction = Callable[[NumericArray], NumericArray]
 
 # Generic type for subclasses returning self-type
 T = TypeVar("T", bound="FuzzyNumber")
@@ -82,7 +86,7 @@ class FuzzyNumber(ABC):
         self.a2 = float(a2)
         self.a3 = float(a3)
         self.a4 = float(a4)
-        def default_function(x: np.ndarray) -> np.ndarray:
+        def default_function(x: float | NDArray[np.float64]) -> float | NDArray[np.float64]:
             return np.full_like(x, np.nan, dtype=float)
         self.lower: NumericFunction = (
             lower
@@ -103,6 +107,54 @@ class FuzzyNumber(ABC):
             else default_function
         )
         self._validate()
+
+    @property
+    def core(self) -> Tuple[float, float]:
+        return (self.a2, self.a3)
+    
+    def distance(self, other: "FuzzyNumber", type_: str = "Euclidean") -> float:
+        """
+        Distance between two fuzzy numbers using their (a1,a2,a3,a4) parameters.
+
+        Parameters
+        ----------
+        other : FuzzyNumber
+            The fuzzy number to compare against.
+        type_ : str
+            One of "Euclidean" or "EuclideanSquared".
+            - "Euclidean": sqrt(sum((a_i - b_i)^2))
+            - "EuclideanSquared": sum((a_i - b_i)^2)
+
+        Returns
+        -------
+        float
+            The requested distance.
+        """
+        def integrand_left_fun(alpha: float) -> float:
+            l1 = self.a1 + (self.a2 - self.a1) * self.left_fun(alpha)
+            l2 = other.a1 + (other.a2 - other.a1) * other.left_fun(alpha)
+            return (l1 - l2) ** 2 # type: ignore[return]
+
+        def integrand_right_fun(alpha: float) -> float:
+            u1 = self.a3 + (self.a4 - self.a3) * self.right_fun(alpha)
+            u2 = other.a3 + (other.a4 - other.a3) * other.right_fun(alpha)
+            return (u1 - u2) ** 2 # type: ignore[return]
+
+        dL: float
+        dU: float
+        dL, _ = quad(lambda a: integrand_left_fun(a), 0.0, 1.0)
+        dU, _ = quad(lambda a: integrand_right_fun(a), 0.0, 1.0)
+
+
+        total = float(dL + dU)
+
+        match type_:
+            case "Euclidean":
+                return float(np.sqrt(total))
+            case "EuclideanSquared":
+                return total
+            case _:
+                raise ValueError(f"Unknown distance type: {type_}")
 
     def membership(self, x: float) -> float:
         # Generalized membership function using left/right and core/support

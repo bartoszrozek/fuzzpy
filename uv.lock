@@ -387,6 +387,7 @@ dependencies = [
     { name = "ipykernel" },
     { name = "numpy" },
     { name = "plotnine" },
+    { name = "scipy" },
 ]
 
 [package.optional-dependencies]
@@ -416,6 +417,7 @@ requires-dist = [
     { name = "pytest", marker = "extra == 'dev'" },
     { name = "pytest-benchmark", marker = "extra == 'dev'" },
     { name = "ruff", marker = "extra == 'dev'" },
+    { name = "scipy", specifier = ">=1.16.0" },
     { name = "ty", marker = "extra == 'dev'" },
 ]
 provides-extras = ["dev"]
